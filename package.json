@@ -1,0 +1,26 @@
+{
+  "name": "madridathon-timer",
+  "version": "1.0.0",
+  "description": "A subathon timer with Minesweeper-style RNG — donations multiply the timer by a random number from 1–8, à la CSGO loot crates.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Evanatious/Madridathon-Timer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Evanatious/Madridathon-Timer/issues"
+  },
+  "homepage": "https://github.com/Evanatious/Madridathon-Timer#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.2"
+  }
+}
