@@ -19,6 +19,28 @@
       <button id="addCustomBtn">+ Add</button>
       <button id="subCustomBtn">- Subtract</button>
     </div>
+
+    <hr>
+
+    <h1>Emergency Timer Override</h1>
+    <label for="set-hours">Hours:</label>
+    <input type="number" id="set-hours" placeholder="0" min="0">
+    <label for="set-minutes">Minutes:</label>
+    <input type="number" id="set-minutes" placeholder="0" min="0" max="59">
+    <br>
+    <button id="set-timer-btn">Set Timer</button>
+
+    <hr>
+
+    <h1>Manual Donation</h1>
+    <label for="manual-name">Name:</label>
+    <input type="text" id="manual-name" placeholder="Donor name" />
+    <br />
+    <label for="manual-amount">Donation Amount (in USD!!! Convert to USD first!):</label>
+    <input type="number" id="manual-amount" placeholder="10" />
+    <br />
+    <button id="manual-submit">Submit Manual Donation</button>
+
   </div>
 
   <script src="control.js"></script>

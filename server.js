@@ -58,7 +58,7 @@ wss.on('connection', ws => {
   console.log('Client connected');
 
   // Send current timer state to new client
-  ws.send(JSON.stringify({ type: 'update', duration }));
+  ws.send(JSON.stringify({type: 'update', duration}));
 
   ws.on('message', message => {
     try {
@@ -73,12 +73,15 @@ wss.on('connection', ws => {
           break;
         case 'add':
           duration += data.amount;
-          broadcast({ type: 'update', duration });
+          broadcast({type: 'update', duration});
           break;
         case 'subtract':
           duration = Math.max(0, duration - data.amount);
-          broadcast({ type: 'update', duration });
+          broadcast({type: 'update', duration});
           break;
+        case 'set':
+          duration = Math.max(0, data.amount);
+          broadcast({type: 'update', duration})
       }
     } catch (err) {
       console.error('Invalid message', err);
