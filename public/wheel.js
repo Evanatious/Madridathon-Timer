@@ -248,7 +248,7 @@ class AnimatedWheelMultiplier {
                 } else {
                     // Animation complete
                     if (targetResult === 'mine' || targetResult === '💣') {
-                        const targetCell = wheelElement?.children[71];
+                        const targetCell = wheelElement?.children[stopPosition];
                         if (targetCell) {
                             const explodedCell = this.createWheelCell('💣', true);
                             wheelElement.replaceChild(explodedCell, targetCell);
