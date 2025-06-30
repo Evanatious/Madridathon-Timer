@@ -11,10 +11,11 @@
  * @returns {object} {
  *   secondsToAdd,
  *   spinResult,    // e.g. 1-8, or '💣'
- *   isBomb         // true if bomb
+ *   isBomb,         // true if bomb
+ *   tier,           // e.g. 'default', 'fiftyDonation', etc.
  * }
  */
-export function calculateTimeToAdd({ amount, probabilities, happyHour = false }) {
+function calculateTimeToAdd({ amount, probabilities, happyHour = false }) {
   // Pick the tier
   let tier = 'default';
   if (amount >= 20000) tier = 'twohundredDonation';
@@ -45,7 +46,8 @@ export function calculateTimeToAdd({ amount, probabilities, happyHour = false })
     return {
       secondsToAdd: 3600 * (happyHour ? 2 : 1),
       spinResult: "💣",
-      isBomb: true
+      isBomb: true,
+      tier
     };
   }
 
@@ -65,7 +67,8 @@ export function calculateTimeToAdd({ amount, probabilities, happyHour = false })
   return {
     secondsToAdd,
     spinResult,
-    isBomb: false
+    isBomb: false,
+    tier
   };
 }
 
@@ -81,7 +84,7 @@ export function calculateTimeToAdd({ amount, probabilities, happyHour = false })
  *   finalSpin          // the final (non-bomb) result
  * }
  */
-export async function donationWithBombReroll(args) {
+async function donationWithBombReroll(args) {
   let totalSeconds = 0;
   let rolls = [];
   while (true) {
@@ -98,3 +101,8 @@ export async function donationWithBombReroll(args) {
     // Optional: await sleep(750) // if you want to animate bomb and pause before reroll
   }
 }
+
+module.exports = {
+  calculateTimeToAdd,
+  donationWithBombReroll
+};

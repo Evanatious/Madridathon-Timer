@@ -1,6 +1,13 @@
-import { donationWithBombReroll } from './timeCalculator.js';
-
 const ws = new WebSocket(`ws://${window.location.host}`);
+
+const happyHourToggle = document.getElementById('happy-hour-toggle');
+happyHourToggle.addEventListener('change', () => {
+  ws.send(JSON.stringify({
+    type: 'setDoubler',
+    enabled: happyHourToggle.checked
+  }));
+});
+
 
 //TIMER CONTROL BUTTONS
 document.getElementById('startBtn').addEventListener('click', () => {
@@ -52,49 +59,26 @@ document.getElementById('set-timer-btn').addEventListener('click', () => {
   alert(`Timer manually set to ${hours}h ${minutes}m`);
 });
 
-// LOAD PROBABILITIES
-let loadedProbabilities = null;
-fetch('/config/probabilities.json')
-  .then(res => res.json())
-  .then(data => { loadedProbabilities = data; })
-  .catch(err => { console.error("Failed to load probabilities:", err); });
-
 // MANUAL DONATION (Wheel Spin)
 document.getElementById('manual-submit').addEventListener('click', async () => {
   const name = document.getElementById('manual-name').value.trim();
   const amountUSD = parseFloat(document.getElementById('manual-amount').value);
-  const doubler = document.getElementById('manual-doubler').checked;
+  //const doubler = document.getElementById('manual-doubler').checked;
 
   if (!name || isNaN(amountUSD) || amountUSD <= 0) {
     alert("Please enter a valid name and donation amount.");
     return;
   }
 
-  if (!loadedProbabilities) {
-    alert("Probabilities not loaded yet! Please wait a moment and try again.");
-    return;
-  }
-
-  const amountCents = Math.round(amountUSD * 100);
-  const happyHour = !!doubler;
-
-  // Get spin/bomb sequence
-  const { totalSeconds, rolls } = await donationWithBombReroll({
-    amount: amountCents,
-    probabilities: loadedProbabilities,
-    happyHour
-  });
-
   // Send the sequence and total time to the server for display + timer update
   ws.send(JSON.stringify({
-    type: 'spinWheel',
-    rolls, // Array of {spinResult, isBomb, secondsToAdd}
-    totalSeconds,
+    type: 'donation',
     donorName: name,
-    donationAmount: amountUSD
+    donationAmount: amountUSD,
+    donationType: 'manual'
   }));
 
-  // Optionally, show a summary on the control panel:
+  /* Optionally, show a summary on the control panel:
   let message = `${name} donated $${amountUSD.toFixed(2)}\n`;
   message += rolls.map((r) =>
     r.isBomb
@@ -102,5 +86,5 @@ document.getElementById('manual-submit').addEventListener('click', async () => {
       : `${r.spinResult === '8' ? '8 (x88!)' : `${r.spinResult}x`} → +${(r.secondsToAdd / 60).toFixed(2)} min`
   ).join('\n');
   message += `\nTotal added: ${(totalSeconds / 60).toFixed(2)} min.`;
-  alert(message);
+  alert(message);*/
 });

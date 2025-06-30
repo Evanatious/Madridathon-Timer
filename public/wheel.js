@@ -191,15 +191,17 @@ class AnimatedWheelMultiplier {
         if (!floatingResult) return;
         let text;
         if (type === 'mine' || type === '💣') {
-            text = "💥 BLAST!";
+            text = "💥 BLAST! +1 hour";
             floatingResult.style.color = '#ef4444';
         } else {
             text = value;
-            floatingResult.style.color = '#fbbf24';
+            floatingResult.style.color = '#39ff14';
         }
+
         floatingResult.textContent = text;
         floatingResult.style.opacity = 1;
         floatingResult.style.animation = 'floatUp 2.5s ease-out';
+
         setTimeout(() => {
             floatingResult.style.animation = '';
             floatingResult.style.opacity = 0;

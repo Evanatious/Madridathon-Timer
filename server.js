@@ -16,9 +16,15 @@ const server = app.listen(port, () => {
 // Setup WebSocket server
 const wss = new WebSocket.Server({ server });
 
+// Import the donationWithBombReroll function from timeCalculator.js
+const { donationWithBombReroll } = require('./public/timeCalculator.js');
+const probabilities = require('./public/config/probabilities.json');
+
+
 // Timer state (in seconds)
 let duration = 24 * 3600; // 24 hours default
 let timerInterval = null;
+let happyHour = false; // Happy hour state
 
 // Broadcast to all connected clients
 function broadcast(data) {
@@ -71,7 +77,7 @@ wss.on('connection', ws => {
   // Send current timer state to new client
   ws.send(JSON.stringify({type: 'update', duration}));
 
-  ws.on('message', message => {
+  ws.on('message', async message => {
     try {
       const data = JSON.parse(message);
       console.log('Received message:', data);
@@ -110,6 +116,30 @@ wss.on('connection', ws => {
           // Mark this connection as a timer display
           ws.isTimer = true;
           console.log('Timer display registered');
+          break;
+        case 'setDoubler':
+          happyHour = !!data.enabled;
+          broadcastToTimers({ type: 'doubler', enabled: happyHour });
+          console.log('[HappyHour] Doubler set to:', happyHour);
+          break;
+        case 'donation':
+          const amountCents = Math.round(data.donationAmount * 100);
+          // Run the spin logic here, on the server
+          const { totalSeconds, rolls, finalSpin } = await donationWithBombReroll({
+            amount: amountCents,
+            probabilities,
+            happyHour   // <-- server's own value!
+          });
+
+          // Send results to overlays/displays
+          broadcastToTimers({
+            type: 'spinWheel',
+            rolls,
+            totalSeconds,
+            donorName: data.donorName,
+            donationAmount: data.donationAmount,
+            donationType: data.donationType
+          });
           break;
       }
     } catch (err) {
