@@ -1,0 +1,16 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+	<title>4 Cell</title>
+	<defs>
+		<image  width="400" height="400" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQAQMAAAC6caSPAAAAAXNSR0IB2cksfwAAAANQTFRFvLy84ZkkvQAAAFZJREFUeJztyzENAAAMA6DVv+lp6NvAT64WRVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVkvD7yqAZFFhyovAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+		.s0 { fill: #00007a } 
+		.s1 { fill: #7a7a7a } 
+	</style>
+	<use id="Background" href="#img1" x="0" y="0"/>
+	<path id="4" class="s0" aria-label="4"  d="m327.3 239.8h-56.1v-177.3l-45 0.1-153.9 177.2v34.8h158.6v62.9h40.4v-62.9h56zm-212 0l115.6-133.4v133.4z"/>
+	<path id="Top Border" class="s1" d="m-254 19.2v-19.3h908v19.3z"/>
+	<path id="Right Border" class="s1" d="m380.7-254h19.3v908h-19.3z"/>
+	<path id="Bottom Border" class="s1" d="m-254 400.2v-19.3h908v19.3z"/>
+	<path id="Left Border" class="s1" d="m0-254h19.3v908h-19.3z"/>
+</svg>

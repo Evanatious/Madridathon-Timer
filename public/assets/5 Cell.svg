@@ -1,0 +1,16 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+	<title>5 Cell</title>
+	<defs>
+		<image  width="400" height="400" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQAQMAAAC6caSPAAAAAXNSR0IB2cksfwAAAANQTFRFvLy84ZkkvQAAAFZJREFUeJztyzENAAAMA6DVv+lp6NvAT64WRVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVkvD7yqAZFFhyovAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+		.s0 { fill: #7a0000 } 
+		.s1 { fill: #7a7a7a } 
+	</style>
+	<use id="Background" href="#img1" x="0" y="0"/>
+	<path id="5" class="s0" aria-label="5"  d="m209.7 163.7c-20.8-0.5-42.9 2.5-64.6 8v-73.5h156.8v-35.7h-196.8v143.2h0.5v12.8c33.1-11.9 60.7-20 93.9-19.1 42.5 0.8 70.1 17.8 69.7 48 0 34.4-34.5 52.3-68 52.3-34.5 0-69.3-16.6-99.5-36.6l-14 34.9c25.9 15.7 61.2 35.2 113 37.4 61.2 2.5 111.4-37 111.4-88 0-55.7-49.3-82-102.4-83.7z"/>
+	<path id="Top Border" class="s1" d="m-254 19.2v-19.3h908v19.3z"/>
+	<path id="Right Border" class="s1" d="m380.7-254h19.3v908h-19.3z"/>
+	<path id="Bottom Border" class="s1" d="m-254 400.2v-19.3h908v19.3z"/>
+	<path id="Left Border" class="s1" d="m0-254h19.3v908h-19.3z"/>
+</svg>
