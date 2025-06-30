@@ -1,3 +1,5 @@
+import { donationWithBombReroll } from './timeCalculator.js';
+
 const ws = new WebSocket(`ws://${window.location.host}`);
 
 //TIMER CONTROL BUTTONS
@@ -50,84 +52,55 @@ document.getElementById('set-timer-btn').addEventListener('click', () => {
   alert(`Timer manually set to ${hours}h ${minutes}m`);
 });
 
-//WHEEL CONTROL BUTTONS
-document.getElementById('spin-wheel-btn').addEventListener('click', () => {
-  const seconds = parseInt(document.getElementById('wheel-seconds').value) || 10;
-  const type = document.getElementById('wheel-type').value;
-  const doublerFlag = document.getElementById('wheel-doubler').checked ? 1 : 0;
-
-  // Send wheel spin command to timer display
-  ws.send(JSON.stringify({ 
-    type: 'spinWheel', 
-    seconds: seconds,
-    wheelType: type,
-    doublerFlag: doublerFlag
-  }));
-  
-  console.log('Wheel spin command sent:', { seconds, type, doublerFlag });
-});
-
-//LOADING PROBABILITES
+// LOAD PROBABILITIES
 let loadedProbabilities = null;
-
 fetch('/config/probabilities.json')
   .then(res => res.json())
-  .then(data => {
-    loadedProbabilities = data;
-    console.log("Loaded probability config:", loadedProbabilities);
-  })
-  .catch(err => {
-    console.error("Failed to load probabilities:", err);
-  });
+  .then(data => { loadedProbabilities = data; })
+  .catch(err => { console.error("Failed to load probabilities:", err); });
 
-function getProbabilityTier(amount) {
-  if (amount >= 200) return loadedProbabilities.twohundredDonation;
-  if (amount >= 100) return loadedProbabilities.hundredDonation;
-  if (amount >= 50) return loadedProbabilities.fiftyDonation;
-  return loadedProbabilities.default;
-}
-
-function getRandomMultiplier(amount) {
-  if (!loadedProbabilities) return 1;
-  const probSet = getProbabilityTier(amount);
-  const rand = Math.random();
-  let sum = 0;
-  for (const [key, weight] of Object.entries(probSet)) {
-    sum += weight;
-    if (rand <= sum) {
-      return key === "💣" ? "💣" : parseInt(key);
-    }
-  }
-  return 1;
-}
-
-//MANUAL DONATION LOGIC
-function applyDonation(name, amount) {
-  const multiplier = getRandomMultiplier(amount);
-
-  if (multiplier === "💣") {
-    // Add 1 hour
-    ws.send(JSON.stringify({ type: 'add', amount: 3600 }));
-    alert(`💣 ${name} hit a bomb! +1 hour added. Rolling again...`);
-
-    // Retry the donation
-    setTimeout(() => applyDonation(name, amount), 500);
-    return;
-  }
-
-  const totalSeconds = Math.floor(amount * multiplier) * 60;
-  ws.send(JSON.stringify({ type: 'add', amount: totalSeconds }));
-  alert(`${name} donated $${amount} → ${multiplier}x → +${Math.floor(totalSeconds / 60)} minutes`);
-}
-
-document.getElementById('manual-submit').addEventListener('click', () => {
+// MANUAL DONATION (Wheel Spin)
+document.getElementById('manual-submit').addEventListener('click', async () => {
   const name = document.getElementById('manual-name').value.trim();
-  const amount = parseFloat(document.getElementById('manual-amount').value);
+  const amountUSD = parseFloat(document.getElementById('manual-amount').value);
+  const doubler = document.getElementById('manual-doubler').checked;
 
-  if (!name || isNaN(amount) || amount <= 0) {
+  if (!name || isNaN(amountUSD) || amountUSD <= 0) {
     alert("Please enter a valid name and donation amount.");
     return;
   }
 
-  applyDonation(name, amount);
+  if (!loadedProbabilities) {
+    alert("Probabilities not loaded yet! Please wait a moment and try again.");
+    return;
+  }
+
+  const amountCents = Math.round(amountUSD * 100);
+  const happyHour = !!doubler;
+
+  // Get spin/bomb sequence
+  const { totalSeconds, rolls } = await donationWithBombReroll({
+    amount: amountCents,
+    probabilities: loadedProbabilities,
+    happyHour
+  });
+
+  // Send the sequence and total time to the server for display + timer update
+  ws.send(JSON.stringify({
+    type: 'spinWheel',
+    rolls, // Array of {spinResult, isBomb, secondsToAdd}
+    totalSeconds,
+    donorName: name,
+    donationAmount: amountUSD
+  }));
+
+  // Optionally, show a summary on the control panel:
+  let message = `${name} donated $${amountUSD.toFixed(2)}\n`;
+  message += rolls.map((r) =>
+    r.isBomb
+      ? `💣 Bomb! +${(r.secondsToAdd / 60).toFixed(2)} min`
+      : `${r.spinResult === '8' ? '8 (x88!)' : `${r.spinResult}x`} → +${(r.secondsToAdd / 60).toFixed(2)} min`
+  ).join('\n');
+  message += `\nTotal added: ${(totalSeconds / 60).toFixed(2)} min.`;
+  alert(message);
 });

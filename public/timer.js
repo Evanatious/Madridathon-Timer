@@ -18,36 +18,18 @@ ws.onopen = () => {
 
 ws.onmessage = async (event) => {
   const data = JSON.parse(event.data);
-  
+
   if (data.type === 'update') {
     duration = data.duration;
     timerElement.textContent = formatTime(duration);
   } else if (data.type === 'spinWheel') {
-    // Handle wheel spin command from control panel
-    const { seconds, wheelType, doublerFlag } = data;
-    
-    console.log('Received wheel spin command:', { seconds, wheelType, doublerFlag });
-    
-    // Check if wheel function is available
-    if (typeof window.spinWheel === 'function') {
-      try {
-        const result = await window.spinWheel(seconds, wheelType, doublerFlag);
-        
-        console.log('Wheel spin result:', result);
-        
-        // If we got a result (not 0 from mine), add it to the timer
-        if (result > 0) {
-          // Send the result back to server to update timer
-          ws.send(JSON.stringify({ type: 'add', amount: result }));
-          console.log('Added to timer:', result);
-        } else {
-          console.log('Mine hit - no time added');
-        }
-      } catch (error) {
-        console.error('Error spinning wheel:', error);
-      }
-    } else {
-      console.error('Wheel function not available');
+    if (Array.isArray(data.rolls)) {
+      await window.animateWheelSequenceWithTimerUpdate(
+        data.rolls,
+        data.donorName,
+        data.donationAmount,
+        ws
+      );
     }
   }
 };
@@ -59,3 +41,29 @@ ws.onerror = (error) => {
 ws.onclose = () => {
   console.log('WebSocket connection closed');
 };
+
+// Optional helper for "popup" effect below the timer
+function showPopup(message) {
+  let popup = document.getElementById('timer-popup');
+  if (!popup) {
+    popup = document.createElement('div');
+    popup.id = 'timer-popup';
+    popup.style.position = 'absolute';
+    popup.style.top = '60%';
+    popup.style.left = '50%';
+    popup.style.transform = 'translate(-50%, 0)';
+    popup.style.background = '#222';
+    popup.style.color = '#0f0';
+    popup.style.fontSize = '2em';
+    popup.style.padding = '16px 40px';
+    popup.style.borderRadius = '18px';
+    popup.style.zIndex = 9999;
+    popup.style.boxShadow = '0 4px 32px #0009';
+    popup.style.textAlign = 'center';
+    popup.style.opacity = '0';
+    document.body.appendChild(popup);
+  }
+  popup.textContent = message;
+  popup.style.opacity = '1';
+  setTimeout(() => { popup.style.opacity = '0'; }, 2600);
+}

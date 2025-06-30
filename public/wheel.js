@@ -1,66 +1,9 @@
-// wheel.js - Standalone Animated Wheel Multiplier Module with Queue System
 
 class AnimatedWheelMultiplier {
     constructor() {
-        this.probabilities = {
-            default: {
-                "1": 0.35,
-                "2": 0.25,
-                "3": 0.18,
-                "4": 0.12,
-                "5": 0.06,
-                "6": 0.03,
-                "7": 0.00917,
-                "8": 0.00083
-            },
-            fiftyDonation: {
-                "1": 0.30,
-                "2": 0.20,
-                "3": 0.15,
-                "4": 0.12,
-                "5": 0.06,
-                "6": 0.03,
-                "7": 0.00917,
-                "8": 0.00083,
-                "mine": 0.12
-            },
-            hundredDonation: {
-                "1": 0.26375,
-                "2": 0.20,
-                "3": 0.15,
-                "4": 0.12,
-                "5": 0.06,
-                "6": 0.03,
-                "7": 0.00917,
-                "8": 0.00083,
-                "mine": 0.15625
-            },
-            twohundredDonation: {
-                "1": 0.21375,
-                "2": 0.20,
-                "3": 0.15,
-                "4": 0.12,
-                "5": 0.06,
-                "6": 0.03,
-                "7": 0.00917,
-                "8": 0.00083,
-                "mine": 0.20625
-            }
-        };
-
         this.wheelContainer = null;
-        this.isSpinning = false;
-        this.wheelItems = [];
-        this.currentResult = null;
-
-        // Queue system properties
-        this.spinQueue = [];
-        this.isProcessingQueue = false;
-        this.lastSpinEndTime = 0;
-        this.QUEUE_DELAY = 3500; // 3.5 seconds delay after wheel ends
     }
 
-    // Get timer element position for proper positioning
     getTimerPosition() {
         const timerElement = document.getElementById('timer');
         if (timerElement) {
@@ -72,7 +15,6 @@ class AnimatedWheelMultiplier {
                 height: rect.height
             };
         }
-        // Fallback to center if timer not found
         return {
             top: window.innerHeight * 0.3,
             left: window.innerWidth * 0.5,
@@ -81,20 +23,9 @@ class AnimatedWheelMultiplier {
         };
     }
 
-    // Update wheel position if timer moves
-    updateWheelPosition() {
-        if (this.wheelContainer && this.wheelContainer.style.display !== 'none') {
-            const timerPos = this.getTimerPosition();
-            this.wheelContainer.style.top = `${timerPos.top - 120}px`;
-        }
-    }
-
-    // Create the wheel container element
     createWheelContainer() {
         if (this.wheelContainer) return this.wheelContainer;
-
         const timerPos = this.getTimerPosition();
-
         const container = document.createElement('div');
         container.id = 'wheel-container';
         container.style.cssText = `
@@ -105,7 +36,6 @@ class AnimatedWheelMultiplier {
             z-index: 1000;
             display: none;
         `;
-
         container.innerHTML = `
             <div style="
                 width: 400px;
@@ -152,14 +82,11 @@ class AnimatedWheelMultiplier {
                 text-align: center;
             "></div>
         `;
-
         document.body.appendChild(container);
         this.wheelContainer = container;
-
         return container;
     }
 
-    // Create wheel cell element
     createWheelCell(type, isExploded = false) {
         const cell = document.createElement('div');
         cell.style.cssText = `
@@ -174,253 +101,79 @@ class AnimatedWheelMultiplier {
             position: relative;
             overflow: hidden;
         `;
-
-        if (type === 'mine') {
+        if (type === 'mine' || type === '💣') {
             if (isExploded) {
                 cell.style.animation = 'explosion 0.5s ease-out';
                 cell.style.backgroundColor = '#ef4444';
             }
-
-            // Try to load mine SVG, fallback to text
-            const img = document.createElement('img');
-            img.src = isExploded ? 'assets/Mine exploded.svg' : 'assets/Mine.svg';
-            img.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
-            img.onerror = function () {
-                cell.innerHTML = isExploded ? '💥' : '💣';
-                cell.style.fontSize = '1.5rem';
-                cell.style.fontWeight = 'bold';
-                cell.style.color = 'white';
-                cell.style.backgroundColor = isExploded ? '#dc2626' : '#374151';
-            };
-            cell.appendChild(img);
+            cell.innerHTML = isExploded ? '💥' : '💣';
+            cell.style.fontSize = '2rem';
+            cell.style.fontWeight = 'bold';
+            cell.style.color = 'white';
+            cell.style.backgroundColor = isExploded ? '#dc2626' : '#374151';
         } else {
-            // Try to load number SVG, fallback to text
-            const img = document.createElement('img');
-            img.src = `assets/${type} Cell.svg`;
-            img.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
-            img.onerror = function () {
-                cell.innerHTML = `${type}×`;
-                cell.style.fontSize = '1.5rem';
-                cell.style.fontWeight = 'bold';
-                cell.style.color = 'white';
-                const colors = {
-                    '1': '#10b981', '2': '#3b82f6', '3': '#8b5cf6', '4': '#ec4899',
-                    '5': '#f43f5e', '6': '#f59e0b', '7': '#ea580c', '8': '#dc2626'
-                };
-                cell.style.backgroundColor = colors[type] || '#6b7280';
+            cell.innerHTML = `${type}×`;
+            cell.style.fontSize = '1.5rem';
+            cell.style.fontWeight = 'bold';
+            cell.style.color = 'white';
+            const colors = {
+                '1': '#10b981', '2': '#3b82f6', '3': '#8b5cf6', '4': '#ec4899',
+                '5': '#f43f5e', '6': '#f59e0b', '7': '#ea580c', '8': '#dc2626'
             };
-            cell.appendChild(img);
+            cell.style.backgroundColor = colors[type] || '#6b7280';
         }
-
         return cell;
     }
 
-    // Select result based on probability
-    selectResult(probs) {
-        const random = Math.random();
-        let cumulative = 0;
-
-        for (const [outcome, probability] of Object.entries(probs)) {
-            cumulative += probability;
-            if (random <= cumulative) {
-                return outcome === "mine" ? "mine" : outcome;
-            }
-        }
-        return "1"; // Fallback
-    }
-
-    // Generate wheel ensuring no adjacent duplicates
-    generateWheel(targetResult, type) {
-        let items;
-        if (type === 'default') {
-            items = ['1', '2', '3', '4', '5', '6', '7', '8'];
-        } else {
-            items = ['1', '2', '3', '4', '5', '6', '7', '8', 'mine'];
-        }
-
-        const wheelLength = 80;
-        const wheel = new Array(wheelLength);
-        const stopPosition = 71;
-
-        wheel[stopPosition] = targetResult;
-
-        for (let i = 0; i < wheelLength; i++) {
-            if (i === stopPosition) continue;
-
-            let attempts = 0;
-            let candidate;
-            do {
-                candidate = items[Math.floor(Math.random() * items.length)];
-                attempts++;
-            } while (
-                attempts < 20 &&
-                ((i > 0 && wheel[i - 1] === candidate) ||
-                    (i < wheelLength - 1 && wheel[i + 1] === candidate))
-            );
-
-            wheel[i] = candidate;
-        }
-
-        return { wheel, stopPosition };
-    }
-
-    // Render wheel
     renderWheel(items) {
         const wheelElement = document.getElementById('wheel');
         if (!wheelElement) return;
-
         wheelElement.innerHTML = '';
-
-        items.forEach((item, index) => {
+        items.forEach(item => {
             const cell = this.createWheelCell(item);
             wheelElement.appendChild(cell);
         });
     }
 
-    // Format time result for display
-    formatTimeResult(seconds) {
-        if (seconds < 60) {
-            return `+${seconds} sec`;
-        }
-
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-
-        if (remainingSeconds === 0) {
-            return `+${minutes}m`;
-        } else {
-            return `+${minutes}m ${remainingSeconds}sec`;
-        }
-    }
-
-    // Show floating result animation
     showFloatingResult(type, value) {
         const floatingResult = document.getElementById('floating-result');
         if (!floatingResult) return;
-
         let text;
-        if (type === 'mine') {
+        if (type === 'mine' || type === '💣') {
             text = "💥 BLAST!";
             floatingResult.style.color = '#ef4444';
         } else {
-            text = this.formatTimeResult(value);
+            text = value;
             floatingResult.style.color = '#fbbf24';
         }
-
         floatingResult.textContent = text;
-
-        // Create animation keyframes dynamically
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes floatUp {
-                0% {
-                    opacity: 0;
-                    transform: translate(-50%, -50%) translateY(0px);
-                }
-                20% {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) translateY(-80px);
-                }
-                80% {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) translateY(-80px);
-                }
-                100% {
-                    opacity: 0;
-                    transform: translate(-50%, -50%) translateY(-100px);
-                }
-            }
-            @keyframes explosion {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.2); background-color: #ef4444; }
-                100% { transform: scale(1); }
-            }
-        `;
-        document.head.appendChild(style);
-
-        floatingResult.style.animation = 'floatUp 3s ease-out';
-
+        floatingResult.style.opacity = 1;
+        floatingResult.style.animation = 'floatUp 2.5s ease-out';
         setTimeout(() => {
             floatingResult.style.animation = '';
-        }, 3000);
+            floatingResult.style.opacity = 0;
+        }, 2500);
     }
 
-    // Queue management methods
-    addToQueue(seconds, type, doublerFlag) {
+    async spinWithResult(targetResult) {
         return new Promise((resolve) => {
-            this.spinQueue.push({
-                seconds,
-                type,
-                doublerFlag,
-                resolve
-            });
-
-            this.processQueue();
-        });
-    }
-
-    async processQueue() {
-        if (this.isProcessingQueue || this.spinQueue.length === 0) {
-            return;
-        }
-
-        this.isProcessingQueue = true;
-
-        while (this.spinQueue.length > 0) {
-            // Check if we need to wait for the delay after the last spin
-            const timeSinceLastSpin = Date.now() - this.lastSpinEndTime;
-            if (timeSinceLastSpin < this.QUEUE_DELAY) {
-                const waitTime = this.QUEUE_DELAY - timeSinceLastSpin;
-                console.log(`Waiting ${waitTime}ms before next wheel spin...`);
-                await new Promise(resolve => setTimeout(resolve, waitTime));
-            }
-
-            const spinRequest = this.spinQueue.shift();
-
-            try {
-                const result = await this.animatedWheelMultiplierInternal(
-                    spinRequest.seconds,
-                    spinRequest.type,
-                    spinRequest.doublerFlag
-                );
-                spinRequest.resolve(result);
-            } catch (error) {
-                console.error('Error during wheel spin:', error);
-                spinRequest.resolve(0);
-            }
-
-            // Update the last spin end time
-            this.lastSpinEndTime = Date.now();
-        }
-
-        this.isProcessingQueue = false;
-    }
-
-    // Internal spinning function (renamed from animatedWheelMultiplier)
-    async animatedWheelMultiplierInternal(seconds, type, doublerFlag) {
-        return new Promise((resolve) => {
-            if (this.isSpinning) {
-                resolve(0);
-                return;
-            }
-
-            this.isSpinning = true;
-
-            // Create and show wheel container
             this.createWheelContainer();
             this.wheelContainer.style.display = 'block';
 
-            const selectedResult = this.selectResult(this.probabilities[type]);
-            const { wheel, stopPosition } = this.generateWheel(selectedResult, type);
-            this.wheelItems = wheel;
-            this.renderWheel(wheel);
+            const items = [];
+            const allResults = ['1','2','3','4','5','6','7','8','💣'];
+            const wheelLength = 80, stopPosition = 71;
+            for (let i = 0; i < wheelLength; i++) {
+                items.push(allResults[Math.floor(Math.random() * allResults.length)]);
+            }
+            items[stopPosition] = targetResult;
+            this.renderWheel(items);
 
             const cellWidth = 66;
             const randomOffset = Math.random() * cellWidth;
-            const duration = 8000;
+            const duration = 2000;
             const startTime = Date.now();
-            const maxDistance = (wheel.length - 10) * cellWidth + randomOffset;
-
+            const maxDistance = (wheelLength - 10) * cellWidth + randomOffset;
             const wheelElement = document.getElementById('wheel');
 
             const animate = () => {
@@ -428,68 +181,79 @@ class AnimatedWheelMultiplier {
                 const progress = Math.min(elapsed / duration, 1);
                 const easeOut = 1 - Math.pow(1 - progress, 4);
                 const currentPosition = -maxDistance * easeOut;
-
                 if (wheelElement) {
                     wheelElement.style.transform = `translateX(${currentPosition}px)`;
                 }
-
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 } else {
                     // Animation complete
-                    this.isSpinning = false;
-
-                    let finalValue;
-                    if (selectedResult === 'mine') {
-                        finalValue = 0;
-                        // Update the mine cell to exploded state
+                    if (targetResult === 'mine' || targetResult === '💣') {
                         const targetCell = wheelElement?.children[71];
                         if (targetCell) {
-                            const explodedCell = this.createWheelCell('mine', true);
+                            const explodedCell = this.createWheelCell('💣', true);
                             wheelElement.replaceChild(explodedCell, targetCell);
                         }
-                        this.showFloatingResult('mine', 0);
-                    } else {
-                        const multiplier = parseInt(selectedResult);
-                        finalValue = seconds * multiplier * (doublerFlag ? 2 : 1);
-                        this.showFloatingResult(selectedResult, finalValue);
                     }
-
-                    // Hide wheel container after 3 seconds
                     setTimeout(() => {
-                        if (this.wheelContainer) {
-                            this.wheelContainer.style.display = 'none';
-                        }
-                    }, 3000);
-
-                    resolve(finalValue);
+                        resolve();
+                    }, 300);
                 }
             };
-
             requestAnimationFrame(animate);
         });
     }
-
-    // Public method to trigger wheel spin (now uses queue)
-    async spin(seconds = 10, type = 'default', doublerFlag = 0) {
-        return await this.addToQueue(seconds, type, doublerFlag);
-    }
-
-    // Clean up
-    destroy() {
-        if (this.wheelContainer) {
-            this.wheelContainer.remove();
-            this.wheelContainer = null;
-        }
-        this.spinQueue = [];
-        this.isProcessingQueue = false;
-    }
 }
 
-// Create global instance
 window.wheelMultiplier = new AnimatedWheelMultiplier();
 
-// Expose the spin function globally for easy access
-window.spinWheel = (seconds, type, doublerFlag) => {
-    return window.wheelMultiplier.spin(seconds, type, doublerFlag);
+window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, donationAmount, ws) {
+  if (!window.wheelMultiplier) return;
+
+  const wheelContainer = window.wheelMultiplier.createWheelContainer();
+  wheelContainer.style.display = 'block';
+
+  let donorBanner = document.getElementById('donor-banner');
+  if (!donorBanner) {
+    donorBanner = document.createElement('div');
+    donorBanner.id = 'donor-banner';
+    donorBanner.style.position = 'absolute';
+    donorBanner.style.top = '-50px';
+    donorBanner.style.left = '50%';
+    donorBanner.style.transform = 'translateX(-50%)';
+    donorBanner.style.color = '#fff';
+    donorBanner.style.background = 'rgba(0,0,0,0.5)';
+    donorBanner.style.fontSize = '2rem';
+    donorBanner.style.padding = '6px 32px';
+    donorBanner.style.borderRadius = '18px';
+    donorBanner.style.zIndex = '1100';
+    donorBanner.style.textAlign = 'center';
+    donorBanner.style.boxShadow = '0 4px 32px #0009';
+    wheelContainer.appendChild(donorBanner);
+  }
+  donorBanner.textContent = `${donorName} - $${Number(donationAmount).toFixed(2)}`;
+
+  for (let i = 0; i < rolls.length; i++) {
+    const roll = rolls[i];
+    await window.wheelMultiplier.spinWithResult(roll.spinResult);
+
+    let addText;
+    if (roll.isBomb) {
+      addText = '+1 hour!';
+      window.wheelMultiplier.showFloatingResult('💣', addText);
+    } else {
+      const min = Math.floor(roll.secondsToAdd / 60);
+      const sec = roll.secondsToAdd % 60;
+      addText = sec === 0 ? `+${min} min` : `+${min} min ${sec} sec`;
+      window.wheelMultiplier.showFloatingResult(roll.spinResult, addText);
+    }
+
+    ws.send(JSON.stringify({ type: 'add', amount: roll.secondsToAdd }));
+    await new Promise(res => setTimeout(res, 1200));
+  }
+
+  setTimeout(() => {
+    wheelContainer.style.display = 'none';
+    donorBanner.textContent = '';
+  }, 1300);
 };

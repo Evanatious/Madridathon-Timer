@@ -97,13 +97,12 @@ wss.on('connection', ws => {
           broadcast({type: 'update', duration});
           break;
         case 'spinWheel':
-          console.log('Forwarding wheel spin to timers:', data);
-          // Forward wheel spin command to timer displays only
+          // Only relay, do NOT update timer here.
           broadcastToTimers({
-            type: 'spinWheel', 
-            seconds: data.seconds,
-            wheelType: data.wheelType,
-            doublerFlag: data.doublerFlag
+            type: 'spinWheel',
+            rolls: data.rolls,  // [{spinResult, isBomb, secondsToAdd}, ...]
+            donorName: data.donorName,
+            donationAmount: data.donationAmount
           });
           break;
         case 'registerTimer':
