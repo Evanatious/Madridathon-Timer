@@ -50,6 +50,22 @@ document.getElementById('set-timer-btn').addEventListener('click', () => {
   alert(`Timer manually set to ${hours}h ${minutes}m`);
 });
 
+//WHEEL CONTROL BUTTONS
+document.getElementById('spin-wheel-btn').addEventListener('click', () => {
+  const seconds = parseInt(document.getElementById('wheel-seconds').value) || 10;
+  const type = document.getElementById('wheel-type').value;
+  const doublerFlag = document.getElementById('wheel-doubler').checked ? 1 : 0;
+
+  // Send wheel spin command to timer display
+  ws.send(JSON.stringify({ 
+    type: 'spinWheel', 
+    seconds: seconds,
+    wheelType: type,
+    doublerFlag: doublerFlag
+  }));
+  
+  console.log('Wheel spin command sent:', { seconds, type, doublerFlag });
+});
 
 //LOADING PROBABILITES
 let loadedProbabilities = null;
@@ -115,4 +131,3 @@ document.getElementById('manual-submit').addEventListener('click', () => {
 
   applyDonation(name, amount);
 });
-

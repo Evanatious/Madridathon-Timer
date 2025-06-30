@@ -1,0 +1,16 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+	<title>8 Cell</title>
+	<defs>
+		<image  width="400" height="400" id="img1" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAAGQAQMAAAC6caSPAAAAAXNSR0IB2cksfwAAAANQTFRFvLy84ZkkvQAAAFZJREFUeJztyzENAAAMA6DVv+lp6NvAT64WRVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVEURVkvD7yqAZFFhyovAAAAAElFTkSuQmCC"/>
+	</defs>
+	<style>
+		.s0 { fill: #6a6a6a } 
+		.s1 { fill: #7a7a7a } 
+	</style>
+	<use id="Background" href="#img1" x="0" y="0"/>
+	<path id="8" class="s0" aria-label="8"  d="m274.6 204.1c18.3-12.8 37.4-33.2 37.4-60.8 0-41.2-43.8-81.2-113.9-81.2-65.9 0-107.1 37.4-107.1 77.8 0 18.7 9.3 36.1 31.9 50.6-21.3 12.7-43.4 34.4-43.4 65 0 41.2 41.7 82 125.4 82 73.1 0 114.3-36.9 114.3-76.5 0-22.5-12.7-41.6-44.6-56.9zm-77.8-106.3c44.2 0 74 21.3 74 49.3 0 17.9-12.8 32.8-27.7 45.5-11.9-3.8-25.9-7.2-41.2-10.2-42.9-8.5-69.7-20-69.7-43.8 0-25.5 31.9-40.8 64.6-40.8zm8.9 204.4c-49.3 0-85-22.9-85-50.5 0-19.1 13.2-34.9 29.4-48 14 5.5 30.6 10.2 50.5 14 50.6 10.2 77.4 18.2 77.4 42.9 0 26.3-32.3 41.6-72.3 41.6z"/>
+	<path id="Top Border" class="s1" d="m-254 19.2v-19.3h908v19.3z"/>
+	<path id="Right Border" class="s1" d="m380.7-254h19.3v908h-19.3z"/>
+	<path id="Bottom Border" class="s1" d="m-254 400.2v-19.3h908v19.3z"/>
+	<path id="Left Border" class="s1" d="m0-254h19.3v908h-19.3z"/>
+</svg>

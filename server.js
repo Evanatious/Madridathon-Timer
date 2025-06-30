@@ -22,8 +22,19 @@ let timerInterval = null;
 
 // Broadcast to all connected clients
 function broadcast(data) {
+  console.log('Broadcasting to all clients:', data);
   wss.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
+
+// Broadcast to specific client type (timer displays only)
+function broadcastToTimers(data) {
+  console.log('Broadcasting to timer displays:', data);
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN && client.isTimer) {
       client.send(JSON.stringify(data));
     }
   });
@@ -63,6 +74,7 @@ wss.on('connection', ws => {
   ws.on('message', message => {
     try {
       const data = JSON.parse(message);
+      console.log('Received message:', data);
 
       switch (data.type) {
         case 'start':
@@ -72,6 +84,7 @@ wss.on('connection', ws => {
           pauseTimer();
           break;
         case 'add':
+          console.log(`Adding ${data.amount} seconds to timer`);
           duration += data.amount;
           broadcast({type: 'update', duration});
           break;
@@ -81,7 +94,23 @@ wss.on('connection', ws => {
           break;
         case 'set':
           duration = Math.max(0, data.amount);
-          broadcast({type: 'update', duration})
+          broadcast({type: 'update', duration});
+          break;
+        case 'spinWheel':
+          console.log('Forwarding wheel spin to timers:', data);
+          // Forward wheel spin command to timer displays only
+          broadcastToTimers({
+            type: 'spinWheel', 
+            seconds: data.seconds,
+            wheelType: data.wheelType,
+            doublerFlag: data.doublerFlag
+          });
+          break;
+        case 'registerTimer':
+          // Mark this connection as a timer display
+          ws.isTimer = true;
+          console.log('Timer display registered');
+          break;
       }
     } catch (err) {
       console.error('Invalid message', err);
