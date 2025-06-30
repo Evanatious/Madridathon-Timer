@@ -102,7 +102,8 @@ wss.on('connection', ws => {
             type: 'spinWheel',
             rolls: data.rolls,  // [{spinResult, isBomb, secondsToAdd}, ...]
             donorName: data.donorName,
-            donationAmount: data.donationAmount
+            donationAmount: data.donationAmount,
+            donationType: data.donationType // 'manual', 'sub', 'gifted'
           });
           break;
         case 'registerTimer':

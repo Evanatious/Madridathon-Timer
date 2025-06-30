@@ -1,12 +1,26 @@
 const timerElement = document.getElementById('timer');
 let duration = 24 * 60 * 60; //24 hours
 
-function formatTime(sec) {
-  const hours = String(Math.floor(sec / 3600)).padStart(2, '0');
-  const minutes = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-  const seconds = String(sec % 60).padStart(2, '0');
-  return `${hours}:${minutes}:${seconds}`;
+function formatTime(seconds) {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  let mm = minutes.toString().padStart(2, '0');
+  let ss = secs.toString().padStart(2, '0');
+  let hh = hours.toString();
+
+  if (days > 0) {
+    hh = hours.toString().padStart(2, '0');
+    return `${days}:${hh}:${mm}:${ss}`;
+  } else if (hours > 0) {
+    return `${hours}:${mm}:${ss}`;
+  } else {
+    return `${minutes}:${ss}`;
+  }
 }
+
 
 const ws = new WebSocket(`ws://${window.location.host}`);
 
@@ -28,7 +42,8 @@ ws.onmessage = async (event) => {
         data.rolls,
         data.donorName,
         data.donationAmount,
-        ws
+        ws,
+        data.donationType
       );
     }
   }

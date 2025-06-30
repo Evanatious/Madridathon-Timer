@@ -1,3 +1,48 @@
+function getMinesweeperSVG(type, isExploded = false) {
+    if (type === 'mine' || type === '💣') {
+        return isExploded
+            ? '/assets/Mine exploded.svg'
+            : '/assets/Mine.svg';
+    }
+    // For numbers 1-8
+    return `/assets/Minesweeper_${type}.svg`;
+}
+
+function pickWeightedRandom(probSet) {
+    const rand = Math.random();
+    let sum = 0;
+    for (const [key, weight] of Object.entries(probSet)) {
+        sum += weight;
+        if (rand < sum) return key;
+    }
+    // fallback (should never happen if weights sum to 1)
+    return Object.keys(probSet)[0];
+}
+
+
+const VISUAL_PROBABILITIES = {
+    default: {
+        "1": 0.35,
+        "2": 0.20,
+        "3": 0.15,
+        "4": 0.10,
+        "5": 0.08,
+        "6": 0.05,
+        "7": 0.04,
+        "8": 0.03
+    },
+    withBomb: {
+        "💣": 0.23,
+        "1": 0.20,
+        "2": 0.15,
+        "3": 0.12,
+        "4": 0.10,
+        "5": 0.08,
+        "6": 0.05,
+        "7": 0.04,
+        "8": 0.03
+    }
+};
 
 class AnimatedWheelMultiplier {
     constructor() {
@@ -43,7 +88,7 @@ class AnimatedWheelMultiplier {
                 background: rgba(31, 41, 55, 0.9);
                 border-radius: 12px;
                 overflow: hidden;
-                border: 4px solid #4b5563;
+                border: 16px solid #b3b3b3;
                 position: relative;
                 margin: 0 auto;
             ">
@@ -90,8 +135,8 @@ class AnimatedWheelMultiplier {
     createWheelCell(type, isExploded = false) {
         const cell = document.createElement('div');
         cell.style.cssText = `
-            width: 66px;
-            height: 72px;
+            width: 76px;
+            height: 76px;
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -100,28 +145,34 @@ class AnimatedWheelMultiplier {
             flex-shrink: 0;
             position: relative;
             overflow: hidden;
+            background: #181d22;
         `;
+
+        // SVG image instead of text
+        const img = document.createElement('img');
+        img.src = getMinesweeperSVG(type, isExploded);
+        img.alt = String(type);
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'contain';
+        img.style.userSelect = 'none';
+        img.style.pointerEvents = 'none';
+
+        // Accessibility: visually hidden number for screen readers
+        img.setAttribute('aria-label', String(type));
+
+        cell.appendChild(img);
+
+        // Optionally, special border for bomb/exploded
         if (type === 'mine' || type === '💣') {
             if (isExploded) {
-                cell.style.animation = 'explosion 0.5s ease-out';
-                cell.style.backgroundColor = '#ef4444';
+                cell.style.border = '3px solid #f43f5e';
+                cell.style.backgroundColor = '#dc2626';
+            } else {
+                cell.style.border = '2px solid #fbbf24';
             }
-            cell.innerHTML = isExploded ? '💥' : '💣';
-            cell.style.fontSize = '2rem';
-            cell.style.fontWeight = 'bold';
-            cell.style.color = 'white';
-            cell.style.backgroundColor = isExploded ? '#dc2626' : '#374151';
-        } else {
-            cell.innerHTML = `${type}×`;
-            cell.style.fontSize = '1.5rem';
-            cell.style.fontWeight = 'bold';
-            cell.style.color = 'white';
-            const colors = {
-                '1': '#10b981', '2': '#3b82f6', '3': '#8b5cf6', '4': '#ec4899',
-                '5': '#f43f5e', '6': '#f59e0b', '7': '#ea580c', '8': '#dc2626'
-            };
-            cell.style.backgroundColor = colors[type] || '#6b7280';
         }
+
         return cell;
     }
 
@@ -155,23 +206,31 @@ class AnimatedWheelMultiplier {
         }, 2500);
     }
 
-    async spinWithResult(targetResult) {
+    async spinWithResult(targetResult, targetTier) {
+        console.log("spinWithResult received targetTier:", targetTier);
+
         return new Promise((resolve) => {
             this.createWheelContainer();
             this.wheelContainer.style.display = 'block';
 
+            // Choose visual table based on tier
+            let probSet = (targetTier === 'default')
+                ? VISUAL_PROBABILITIES.default
+                : VISUAL_PROBABILITIES.withBomb;
+
+            // Fill the wheel with weighted randoms
             const items = [];
-            const allResults = ['1','2','3','4','5','6','7','8','💣'];
-            const wheelLength = 80, stopPosition = 71;
+            const wheelLength = 80, stopPosition = 70;
             for (let i = 0; i < wheelLength; i++) {
-                items.push(allResults[Math.floor(Math.random() * allResults.length)]);
+                items.push(pickWeightedRandom(probSet));
             }
-            items[stopPosition] = targetResult;
+            items[stopPosition] = targetResult; // Place actual result at stop position
             this.renderWheel(items);
 
-            const cellWidth = 66;
-            const randomOffset = Math.random() * cellWidth;
-            const duration = 2000;
+            //Animate wheel
+            const cellWidth = 76;
+            const randomOffset = ((Math.random() * 2) - 1) * 0.25 * cellWidth;
+            const duration = 6000;
             const startTime = Date.now();
             const maxDistance = (wheelLength - 10) * cellWidth + randomOffset;
             const wheelElement = document.getElementById('wheel');
@@ -205,9 +264,29 @@ class AnimatedWheelMultiplier {
     }
 }
 
+function formatTime(seconds) {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  let mm = minutes.toString().padStart(2, '0');
+  let ss = secs.toString().padStart(2, '0');
+  let hh = hours.toString();
+
+  if (days > 0) {
+    hh = hours.toString().padStart(2, '0');
+    return `${days}:${hh}:${mm}:${ss}`;
+  } else if (hours > 0) {
+    return `${hours}:${mm}:${ss}`;
+  } else {
+    return `${minutes}:${ss}`;
+  }
+}
+
 window.wheelMultiplier = new AnimatedWheelMultiplier();
 
-window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, donationAmount, ws) {
+window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, donationAmount, ws, donationType) {
   if (!window.wheelMultiplier) return;
 
   const wheelContainer = window.wheelMultiplier.createWheelContainer();
@@ -218,7 +297,7 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
     donorBanner = document.createElement('div');
     donorBanner.id = 'donor-banner';
     donorBanner.style.position = 'absolute';
-    donorBanner.style.top = '-50px';
+    donorBanner.style.top = '-100px';
     donorBanner.style.left = '50%';
     donorBanner.style.transform = 'translateX(-50%)';
     donorBanner.style.color = '#fff';
@@ -231,24 +310,41 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
     donorBanner.style.boxShadow = '0 4px 32px #0009';
     wheelContainer.appendChild(donorBanner);
   }
-  donorBanner.textContent = `${donorName} - $${Number(donationAmount).toFixed(2)}`;
+
+  if (donationType === 'manual') {
+    donorBanner.textContent = `${donorName} - $${Number(donationAmount).toFixed(2)}`;
+  } else if (donationType === 'sub') {
+    donorBanner.textContent = `${donorName} - 1 Sub`;
+  } else if (donationType === 'gifted') {
+    const subCount = donationAmount / 300; // Assuming $3 per sub
+    donorBanner.textContent = `${donorName} - ${subCount} Gifted Subs`;
+  }
 
   for (let i = 0; i < rolls.length; i++) {
     const roll = rolls[i];
-    await window.wheelMultiplier.spinWithResult(roll.spinResult);
+    await window.wheelMultiplier.spinWithResult(roll.spinResult, roll.tier);
 
     let addText;
     if (roll.isBomb) {
       addText = '+1 hour!';
       window.wheelMultiplier.showFloatingResult('💣', addText);
     } else {
-      const min = Math.floor(roll.secondsToAdd / 60);
-      const sec = roll.secondsToAdd % 60;
-      addText = sec === 0 ? `+${min} min` : `+${min} min ${sec} sec`;
+      addText = `+${formatTime(roll.secondsToAdd)}`;
       window.wheelMultiplier.showFloatingResult(roll.spinResult, addText);
     }
 
     ws.send(JSON.stringify({ type: 'add', amount: roll.secondsToAdd }));
+
+    //Pop the timer
+    const timerEl = document.getElementById('timer');
+    if (timerEl) {
+      timerEl.classList.remove('pop');
+      void timerEl.offsetWidth; // restart animation if rapid
+      timerEl.classList.add('pop');
+      setTimeout(() => {
+        timerEl.classList.remove('pop');
+      }, 800); // a bit longer than your .35s animation
+    }
     await new Promise(res => setTimeout(res, 1200));
   }
 
