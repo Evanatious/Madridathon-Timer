@@ -327,7 +327,7 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
     const subCount = donationAmount / 300; // Assuming $3 per sub
     donorBanner.textContent = `${donorName} - ${subCount} Gifted Subs`;
   } else if (donationType === 'bits') {
-    donorBanner.textContent = `${donorName} - ${donationAmount} Bits`;
+    donorBanner.textContent = `${donorName} - ${donationAmount * 100} Bits`;
   }
 
   for (let i = 0; i < rolls.length; i++) {
