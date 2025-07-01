@@ -45,8 +45,25 @@
     <h1>HAPPY HOUR</h1>
     <label for="happy-hour-toggle">2× Doubler:</label>
     <input type="checkbox" id="happy-hour-toggle" />
+    <label for="happy-hour-countdown-hours">Hours:</label>
+    <input type="number" id="happy-hour-countdown-hours" min="0" value="0" style="width:3em;">
+    <label for="happy-hour-countdown-minutes">Minutes:</label>
+    <input type="number" id="happy-hour-countdown-minutes" min="0" max="59" value="0" style="width:3em;">
+    <label for="happy-hour-countdown-seconds">Seconds:</label>
+    <input type="number" id="happy-hour-countdown-seconds" min="0" max="59" value="0" style="width:3em;">
+    <button id="set-happy-hour-countdown-btn">Set Countdown</button>
+    <span id="happy-hour-countdown-display"></span>
     <br />
 
+    <hr>
+    <h1>Donation Progress</h1>
+    <label for="fundraising-goal">Goal ($):</label>
+    <input type="number" id="fundraising-goal" min="1" step="0.01" />
+    <button id="set-fundraising-goal">Set Goal</button>
+    <br>
+    <label for="funds-raised">Raised ($):</label>
+    <input type="number" id="funds-raised" min="0" step="0.01" />
+    <button id="set-funds-raised">Set Raised</button>
 
   </div>
 

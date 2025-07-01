@@ -13,6 +13,8 @@
  *   spinResult,    // e.g. 1-8, or '💣'
  *   isBomb,         // true if bomb
  *   tier,           // e.g. 'default', 'fiftyDonation', etc.
+ *   multiplier, // 1-7 or 88 for 8
+ *   amount          // Original donation amount for logging
  * }
  */
 function calculateTimeToAdd({ amount, probabilities, happyHour = false }) {
@@ -47,7 +49,9 @@ function calculateTimeToAdd({ amount, probabilities, happyHour = false }) {
       secondsToAdd: 3600 * (happyHour ? 2 : 1),
       spinResult: "💣",
       isBomb: true,
-      tier
+      tier,
+      multiplier: 1, // Bombs don't have a multiplier
+      amount
     };
   }
 
@@ -68,7 +72,9 @@ function calculateTimeToAdd({ amount, probabilities, happyHour = false }) {
     secondsToAdd,
     spinResult,
     isBomb: false,
-    tier
+    tier,
+    multiplier,
+    amount
   };
 }
 

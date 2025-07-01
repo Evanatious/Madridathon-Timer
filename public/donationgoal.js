@@ -1,0 +1,25 @@
+const ws = new WebSocket(`ws://${window.location.host}`);
+
+const bar = document.getElementById('fundraising-bar');
+const label = document.getElementById('fundraising-bar-label');
+
+let goal = 1000, raised = 0;
+
+function updateBar() {
+  const percent = goal > 0 ? Math.min(raised / goal, 1) * 100 : 0;
+  bar.style.width = percent + '%';
+  label.textContent = `$${raised.toFixed(2)} raised of $${goal.toFixed(2)} goal`;
+}
+
+// Listen for updates from the server
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === 'fundraising') {
+    goal = data.goal;
+    raised = data.raised;
+    updateBar();
+  }
+};
+
+// On initial load, bar should display something (optional)
+updateBar();

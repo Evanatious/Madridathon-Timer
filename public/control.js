@@ -8,6 +8,8 @@ happyHourToggle.addEventListener('change', () => {
   }));
 });
 
+let happyHourDurationInterval = null;
+
 
 //TIMER CONTROL BUTTONS
 document.getElementById('startBtn').addEventListener('click', () => {
@@ -78,13 +80,25 @@ document.getElementById('manual-submit').addEventListener('click', async () => {
     donationType: 'manual'
   }));
 
-  /* Optionally, show a summary on the control panel:
-  let message = `${name} donated $${amountUSD.toFixed(2)}\n`;
-  message += rolls.map((r) =>
-    r.isBomb
-      ? `💣 Bomb! +${(r.secondsToAdd / 60).toFixed(2)} min`
-      : `${r.spinResult === '8' ? '8 (x88!)' : `${r.spinResult}x`} → +${(r.secondsToAdd / 60).toFixed(2)} min`
-  ).join('\n');
-  message += `\nTotal added: ${(totalSeconds / 60).toFixed(2)} min.`;
-  alert(message);*/
+});
+
+//Happy Hour Countdown
+document.getElementById('set-happy-hour-countdown-btn').addEventListener('click', () => {
+  const hours = parseInt(document.getElementById('happy-hour-countdown-hours').value) || 0;
+  const minutes = parseInt(document.getElementById('happy-hour-countdown-minutes').value) || 0;
+  const seconds = parseInt(document.getElementById('happy-hour-countdown-seconds').value) || 0;
+  const totalSeconds = (hours * 3600) + (minutes * 60) + seconds;
+
+  ws.send(JSON.stringify({ type: 'setHappyHourDuration', amount: totalSeconds }));
+});
+
+// --- Fundraising Goal and Progress Controls ---
+document.getElementById('set-fundraising-goal').addEventListener('click', () => {
+  const goal = parseFloat(document.getElementById('fundraising-goal').value) || 0;
+  ws.send(JSON.stringify({ type: 'setFundraisingGoal', goal }));
+});
+
+document.getElementById('set-funds-raised').addEventListener('click', () => {
+  const raised = parseFloat(document.getElementById('funds-raised').value) || 0;
+  ws.send(JSON.stringify({ type: 'setFundsRaised', raised }));
 });

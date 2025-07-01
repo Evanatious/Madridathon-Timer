@@ -25,6 +25,10 @@ const probabilities = require('./public/config/probabilities.json');
 let duration = 24 * 3600; // 24 hours default
 let timerInterval = null;
 let happyHour = false; // Happy hour state
+let happyHourDuration = 0;
+let happyHourDurationInterval = null;
+let fundraisingGoal = 1000;
+let fundsRaised = 0;
 
 // Broadcast to all connected clients
 function broadcast(data) {
@@ -102,16 +106,6 @@ wss.on('connection', ws => {
           duration = Math.max(0, data.amount);
           broadcast({type: 'update', duration});
           break;
-        case 'spinWheel':
-          // Only relay, do NOT update timer here.
-          broadcastToTimers({
-            type: 'spinWheel',
-            rolls: data.rolls,  // [{spinResult, isBomb, secondsToAdd}, ...]
-            donorName: data.donorName,
-            donationAmount: data.donationAmount,
-            donationType: data.donationType // 'manual', 'sub', 'gifted'
-          });
-          break;
         case 'registerTimer':
           // Mark this connection as a timer display
           ws.isTimer = true;
@@ -140,6 +134,38 @@ wss.on('connection', ws => {
             donationAmount: data.donationAmount,
             donationType: data.donationType
           });
+
+          //Update bar
+          if (data.donationType === 'manual') {
+            // Only update funds raised for manual donations
+            fundsRaised += data.donationAmount;
+            broadcast({ type: 'fundraising', goal: fundraisingGoal, raised: fundsRaised });
+          }
+          break;
+        case 'setHappyHourDuration':
+          // Stop existing interval if running
+          clearInterval(happyHourDurationInterval);
+          happyHourDuration = data.amount;
+          // Broadcast immediately
+          broadcast({ type: 'happyHourDuration', amount: happyHourDuration });
+          if (happyHourDuration > 0) {
+            happyHourDurationInterval = setInterval(() => {
+              happyHourDuration--;
+              broadcast({ type: 'happyHourDuration', amount: happyHourDuration });
+              if (happyHourDuration <= 0) {
+                clearInterval(happyHourDurationInterval);
+                happyHourDurationInterval = null;
+              }
+            }, 1000);
+          }
+          break;
+        case 'setFundraisingGoal':
+          fundraisingGoal = data.goal;
+          broadcast({ type: 'fundraising', goal: fundraisingGoal, raised: fundsRaised });
+          break;
+        case 'setFundsRaised':
+          fundsRaised = data.raised;
+          broadcast({ type: 'fundraising', goal: fundraisingGoal, raised: fundsRaised });
           break;
       }
     } catch (err) {

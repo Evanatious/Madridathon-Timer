@@ -89,3 +89,74 @@ body {
     color: lime;
     margin-top: 10px;
   }
+
+  #fundraising-bar-container {
+    width: 700px;
+    max-width: 96vw;
+    background: #222;
+    border-radius: 20px;
+    height: 38px;
+    margin: 30px auto 6px;
+    overflow: hidden;
+    box-shadow: 0 6px 32px #000a;
+    position: relative;
+  }
+
+  #fundraising-bar {
+    background: linear-gradient(90deg, #39ff14, #20c997);
+    height: 100%;
+    width: 0%;
+    border-radius: 20px;
+    transition: width 0.6s cubic-bezier(.52,1.6,.34,.97);
+    position: absolute;
+    left: 0; top: 0;
+  }
+
+  #fundraising-bar-label {
+    color: #fff;
+    font-size: 1.6em;
+    font-weight: bold;
+    text-align: center;
+    width: 100%;
+    position: absolute;
+    left: 0; top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 8px #fff7;
+    letter-spacing: 1.5px;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  html, body {
+    background: transparent;
+    margin: 0;
+    padding: 0;
+  }
+
+  #happyhour-timer {
+    font-size: 3.5em;
+    color: #39ff14;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 32px;
+    text-shadow: 2px 2px 10px #000a, 0 0 32px #39ff14bb;
+    transition: color 0.3s, text-shadow 0.3s;
+    background: rgba(32, 32, 32, 0.68); /* transparent dark gray */
+    padding: 0.25em 0.7em;
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  #happyhour-timer.happyhour-ready {
+    color: #fff200;
+    text-shadow: 2px 2px 14px #000, 0 0 40px #fff200;
+    animation: hh-flash 1.2s infinite alternate;
+  }
+
+  @keyframes hh-flash {
+    0% { color: #fff200; text-shadow: 0 0 10px #fff200, 2px 2px 12px #000; }
+    100% { color: #ffffff; text-shadow: 0 0 32px #fff200, 2px 2px 18px #222; }
+  }

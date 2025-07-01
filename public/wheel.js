@@ -19,6 +19,11 @@ function pickWeightedRandom(probSet) {
     return Object.keys(probSet)[0];
 }
 
+function playSound(src, volume = 0.9) {
+    const audio = new Audio(src);
+    audio.volume = volume;
+    audio.play();   
+}
 
 const VISUAL_PROBABILITIES = {
     default: {
@@ -205,11 +210,12 @@ class AnimatedWheelMultiplier {
         setTimeout(() => {
             floatingResult.style.animation = '';
             floatingResult.style.opacity = 0;
-        }, 2500);
+        }, 4200);
     }
 
     async spinWithResult(targetResult, targetTier) {
         console.log("spinWithResult received targetTier:", targetTier);
+        playSound('/assets/caseOpening.mp3', 1);
 
         return new Promise((resolve) => {
             this.createWheelContainer();
@@ -320,6 +326,8 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
   } else if (donationType === 'gifted') {
     const subCount = donationAmount / 300; // Assuming $3 per sub
     donorBanner.textContent = `${donorName} - ${subCount} Gifted Subs`;
+  } else if (donationType === 'bits') {
+    donorBanner.textContent = `${donorName} - ${donationAmount} Bits`;
   }
 
   for (let i = 0; i < rolls.length; i++) {
@@ -328,10 +336,14 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
 
     let addText;
     if (roll.isBomb) {
+      playSound('/assets/explosion.mp3');
       addText = '+1 hour!';
       window.wheelMultiplier.showFloatingResult('💣', addText);
     } else {
-      addText = `+${formatTime(roll.secondsToAdd)}`;
+      const mult = roll.multiplier;
+      const baseStr = formatTime(roll.amount);
+      const totalStr = formatTime(roll.secondsToAdd);
+      addText = `${baseStr} × ${mult} = +${totalStr}`;
       window.wheelMultiplier.showFloatingResult(roll.spinResult, addText);
     }
 
@@ -345,7 +357,7 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
       timerEl.classList.add('pop');
       setTimeout(() => {
         timerEl.classList.remove('pop');
-      }, 800); // a bit longer than your .35s animation
+      }, 800); 
     }
     await new Promise(res => setTimeout(res, 1200));
   }
@@ -353,5 +365,5 @@ window.animateWheelSequenceWithTimerUpdate = async function(rolls, donorName, do
   setTimeout(() => {
     wheelContainer.style.display = 'none';
     donorBanner.textContent = '';
-  }, 1300);
+  }, 2500);
 };
